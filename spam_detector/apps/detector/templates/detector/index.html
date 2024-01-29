@@ -1,0 +1,71 @@
+{% extends "detector/base.html" %}
+{% load static %}
+{% comment %} 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Spam Detection</title>    
+</head> {% endcomment %}
+{% block content %}
+    <h2>Text Spam Detection</h2>
+
+    <form id="predict-form">
+        {% csrf_token %}
+        <label for="message">Message:</label>
+        <textarea id="message" name="message" rows="4" cols="50"></textarea>
+        <button type="submit">Predict</button>
+    </form>
+    <p id="prediction-result"></p>
+
+    <script>
+        document.getElementById('predict-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+        
+            const message = document.getElementById("message").value;
+            console.log(message);
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            console.log(csrfToken);
+			let uriEncodedMsg = encodeURIComponent(message);
+		    console.log(uriEncodedMsg);
+            
+            const response = await fetch("/predict/", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: `message=${uriEncodedMsg}`
+            });
+        
+            if (response.ok) {
+                const result = await response.json();
+                // Debugging statements
+                console.log(result);
+                console.log(result.prediction);
+                document.getElementById('prediction-result').innerText = `Prediction: ${result.prediction}`;
+            } else {
+                const error = await response.json();
+                console.log(error);
+                document.getElementById('prediction-result').innerText = "Error: Failed to predict";
+            }
+        });
+    </script>
+        
+{% endblock %}
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Spam Detection</title>
+</head>
+<body>
+    <h1>Text Spam Detection</h1>
+    <form id="predict-form">
+        <label for="message">Message:</label>
+        <textarea id="message" name="message" rows="4" cols="50"></textarea>
+        <button type="submit">Predict</button>
+    </form>
+    <p id="prediction-result"></p>
+</body>
+</html> {% endcomment %}
